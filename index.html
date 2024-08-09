@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Citation Checklist</title>
+    <title>Citation Checklist 📋</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
 
@@ -48,6 +48,17 @@
             text-align: center;
         }
 
+        .checkbox-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        .checkbox-container input {
+            margin-right: 10px;
+        }
+
         .citation-list {
             margin-bottom: 30px;
         }
@@ -58,7 +69,7 @@
             gap: 10px;
         }
 
-        input {
+        input[type="text"] {
             flex: 1;
             background-color: rgba(255, 255, 255, 0.1);
             border: 1px solid rgba(255, 255, 255, 0.2);
@@ -117,7 +128,7 @@
                 flex-direction: column;
             }
 
-            input {
+            input[type="text"] {
                 margin-bottom: 10px;
             }
 
@@ -133,12 +144,16 @@
 </head>
 <body>
     <div class="container">
-        <h1>Citation Checklist</h1>
+        <h1>Citation Checklist 📋</h1>
         <div class="date" id="current-date"></div>
+        <div class="checkbox-container">
+            <input type="checkbox" id="recommended-citations" checked>
+            <label for="recommended-citations">Recommended Basic Citations 🌟</label>
+        </div>
         <div id="citation-list" class="citation-list"></div>
         <div class="button-group">
-            <button id="add-citation">Add Citation</button>
-            <button id="download-checklist">Download Checklist (CSV)</button>
+            <button id="add-citation">Add Citation ➕</button>
+            <button id="download-checklist">Download Checklist (CSV) 📥</button>
         </div>
     </div>
 
@@ -148,18 +163,23 @@
             const addCitationBtn = document.getElementById('add-citation');
             const downloadBtn = document.getElementById('download-checklist');
             const currentDateEl = document.getElementById('current-date');
+            const recommendedCheckbox = document.getElementById('recommended-citations');
+
+            const recommendedCitations = [
+                'Facebook', 'Instagram', 'Pinterest', 'Bing Places', 'Yelp', 'Apple Maps'
+            ];
 
             // Set current date
             const currentDate = new Date().toISOString().split('T')[0];
             currentDateEl.textContent = `Date: ${currentDate}`;
 
-            function addCitation() {
+            function addCitation(name = '', link = '') {
                 const citationItem = document.createElement('div');
                 citationItem.className = 'citation-item';
                 citationItem.innerHTML = `
-                    <input type="text" placeholder="Citation Name" class="citation-name">
-                    <input type="text" placeholder="Citation Link" class="citation-link">
-                    <button class="remove-btn">Remove</button>
+                    <input type="text" placeholder="Citation Name" class="citation-name" value="${name}">
+                    <input type="text" placeholder="Citation Link" class="citation-link" value="${link}">
+                    <button class="remove-btn">Remove ❌</button>
                 `;
                 citationList.appendChild(citationItem);
 
@@ -210,11 +230,19 @@
                 URL.revokeObjectURL(url);
             }
 
-            addCitationBtn.addEventListener('click', addCitation);
-            downloadBtn.addEventListener('click', downloadChecklist);
+            function loadRecommendedCitations() {
+                citationList.innerHTML = '';
+                if (recommendedCheckbox.checked) {
+                    recommendedCitations.forEach(citation => addCitation(citation));
+                }
+            }
 
-            // Add initial citation field
-            addCitation();
+            addCitationBtn.addEventListener('click', () => addCitation());
+            downloadBtn.addEventListener('click', downloadChecklist);
+            recommendedCheckbox.addEventListener('change', loadRecommendedCitations);
+
+            // Initial load
+            loadRecommendedCitations();
         });
     </script>
 </body>
