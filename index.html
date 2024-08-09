@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Citation Checklist</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #1e2530;
+            color: #ffffff;
+            line-height: 1.6;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 800px;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            padding: 40px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            color: #7fffd4;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .date {
+            font-size: 1rem;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .citation-list {
+            margin-bottom: 30px;
+        }
+
+        .citation-item {
+            display: flex;
+            margin-bottom: 20px;
+            gap: 10px;
+        }
+
+        input {
+            flex: 1;
+            background-color: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 5px;
+            color: #ffffff;
+            padding: 12px;
+            font-size: 1rem;
+        }
+
+        button {
+            background-color: #7fffd4;
+            color: #1e2530;
+            border: none;
+            border-radius: 5px;
+            padding: 12px 20px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background-color 0.3s, transform 0.1s;
+            font-size: 1rem;
+        }
+
+        button:hover {
+            background-color: #6ce9c0;
+        }
+
+        button:active {
+            transform: scale(0.98);
+        }
+
+        .remove-btn {
+            background-color: #4a5568;
+            color: #ffffff;
+            padding: 12px;
+        }
+
+        .remove-btn:hover {
+            background-color: #2d3748;
+        }
+
+        .button-group {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+
+            .container {
+                padding: 20px;
+            }
+
+            .citation-item {
+                flex-direction: column;
+            }
+
+            input {
+                margin-bottom: 10px;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+
+            button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Citation Checklist</h1>
+        <div class="date" id="current-date"></div>
+        <div id="citation-list" class="citation-list"></div>
+        <div class="button-group">
+            <button id="add-citation">Add Citation</button>
+            <button id="download-checklist">Download Checklist (CSV)</button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const citationList = document.getElementById('citation-list');
+            const addCitationBtn = document.getElementById('add-citation');
+            const downloadBtn = document.getElementById('download-checklist');
+            const currentDateEl = document.getElementById('current-date');
+
+            // Set current date
+            const currentDate = new Date().toISOString().split('T')[0];
+            currentDateEl.textContent = `Date: ${currentDate}`;
+
+            function addCitation() {
+                const citationItem = document.createElement('div');
+                citationItem.className = 'citation-item';
+                citationItem.innerHTML = `
+                    <input type="text" placeholder="Citation Name" class="citation-name">
+                    <input type="text" placeholder="Citation Link" class="citation-link">
+                    <button class="remove-btn">Remove</button>
+                `;
+                citationList.appendChild(citationItem);
+
+                const nameInput = citationItem.querySelector('.citation-name');
+                const linkInput = citationItem.querySelector('.citation-link');
+
+                nameInput.addEventListener('keypress', handleEnter);
+                linkInput.addEventListener('keypress', handleEnter);
+
+                citationItem.querySelector('.remove-btn').addEventListener('click', function() {
+                    citationList.removeChild(citationItem);
+                });
+
+                nameInput.focus();
+            }
+
+            function handleEnter(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    const currentInput = e.target;
+                    const citationItem = currentInput.closest('.citation-item');
+                    const inputs = citationItem.querySelectorAll('input');
+                    const currentIndex = Array.from(inputs).indexOf(currentInput);
+
+                    if (currentIndex < inputs.length - 1) {
+                        inputs[currentIndex + 1].focus();
+                    } else {
+                        addCitation();
+                    }
+                }
+            }
+
+            function downloadChecklist() {
+                let content = 'Citation Name,Citation Link\n';
+                const citations = citationList.querySelectorAll('.citation-item');
+                citations.forEach(citation => {
+                    const name = citation.querySelector('.citation-name').value.replace(/,/g, '');
+                    const link = citation.querySelector('.citation-link').value.replace(/,/g, '');
+                    content += `"${name}","${link}"\n`;
+                });
+
+                const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `citation_checklist_${currentDate}.csv`;
+                a.click();
+                URL.revokeObjectURL(url);
+            }
+
+            addCitationBtn.addEventListener('click', addCitation);
+            downloadBtn.addEventListener('click', downloadChecklist);
+
+            // Add initial citation field
+            addCitation();
+        });
+    </script>
+</body>
+</html>
